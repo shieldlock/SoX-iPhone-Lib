@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+# -*- mode: makefile; coding: utf-8 -*-
+
+DEB_TAR_SRCDIR := sox-14.4.2git
+
+include /usr/share/cdbs/1/rules/tarball.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+
+CPPFLAGS += -I/usr/include/ffmpeg
+DEB_CONFIGURE_EXTRA_FLAGS := --with-distro="$(shell dpkg-vendor --query vendor)" --with-dyn-default
+# Takes care of postinst-has-useless-call-to-ldconfig for libsox-fmt-*
+DEB_DH_MAKESHLIBS_ARGS := -Xfmt

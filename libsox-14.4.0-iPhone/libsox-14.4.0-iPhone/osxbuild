@@ -1,0 +1,130 @@
+#!/bin/sh
+#
+# This script will automates the steps used to producing a static osx
+# package of SoX.
+#
+# It requires to already have several external libraries already installed
+# under /usr/local/10.5.  The external libraries must be static only or else
+# it will expect dylib versions to already exist on external boxes.
+#
+# This goes out of its way to only compile a 32 bit i386 binary and to use the
+# oldest available SDK for greater compatibility.
+#
+# Various notes:
+#
+# The following command lines were used to generate the static external
+# libraries SoX ships with.
+#
+# cd libtool-2.4.2
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# cd libpng-1.5.7
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# cd ../wavpack-4.60.1
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# flac won't compile without following fix.  Edit src/libFLAC/ia32/nasm.h and
+# add following to top of that file: %define FLAC__PUBLIC_NEEDS_UNDERSCORE
+# cd ../flac-1.2.1
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" CXXFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# cd ../libogg-1.3.0
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# cd ../libvorbis-1.3.2
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# When compiling with newer versions of OS X, Carbon.h does not exist and
+# doesn't need to be included by app.  Edit programs/sndfile-play.c and
+# delete/comment out line 61.
+# cd ../libsndfile-1.0.25
+# ./configure --disable-sqlite --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" CXXFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# cd ../libid3tag-0.15.1b
+# ./configure --prefix=/usr/local/10.5 CFLAGS="-m32 -arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk -mmacosx-version-min=10.5" --disable-shared --enable-static;make;sudo make install
+#
+# To get MP3 header files used to enable MP3 support (no libraries used):
+#
+# brew install mad
+#
+# or compile and install:
+#
+# cd ../libmad-0.15.1b
+#./configure CFLAGS="-m32 -arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" LDFLAGS="-arch i386 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5" --enable-shared --disable-static;make;sudo make install
+#
+
+if [ -d /Developer/SDKs/MacOSX10.5.sdk ]; then
+  MacOSXSDK=/Developer/SDKs/MacOSX10.5.sdk
+else
+  MacOSXSDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+fi
+
+[ ! -x configure ] && autoreconf -i
+
+# Some versions of autoconf (2.63?) seem to get easily confused about
+# CPP variable. If you see warning messages about header files
+# rejected by preprocessor then its most likely from that.
+# Force the value of CPP=cpp works around that bug.
+if [ $# -ne 0 -o ! -r Makefile ]; then
+  ./configure \
+    --disable-shared \
+    --with-libltdl \
+    --enable-dl-lame --enable-dl-mad \
+    --enable-dl-amrnb --enable-dl-amrwb \
+    CPP=cpp\
+    CPPFLAGS="-I/usr/local/10.5/include -I/usr/local/include" \
+    CFLAGS="-m32 -arch i386 -isysroot ${MacOSXSDK} -mmacosx-version-min=10.5" \
+    LDFLAGS="-L/usr/local/10.5/lib -m32 -arch i386 -isysroot ${MacOSXSDK} -mmacosx-version-min=10.5" \
+    $*
+fi
+
+make -s all txt || exit 1
+
+dylib_need_to_ship=`otool -L src/sox | grep -v CoreAudio.framework | grep -v libz | grep -v libiconv | grep -v libSystem | grep -v libgcc_s | grep -v src/sox`
+
+# Make sure we are only relying on OS dynamic libraries.  If not
+# then app won't run unless user's box looks just like this one
+# (unlikely).  We could ship some dylibs but that would require
+# using rpath just right (@loader_path) and thats not easy to
+# get right.
+if [ ! "${dylib_need_to_ship}x" = "x" ]; then
+    echo "Non-OS dylib's detected:${dylib_need_to_ship}"
+    exit 1
+fi
+
+dir=sox-`grep Version: sox.pc | cut -d ' ' -f 2`
+rm -rf $dir $dir-macosx.zip
+mkdir -p $dir
+
+# Judgement call.  If filename ends in .txt then user can view
+# by double clicking in Finder.
+for f in LICENSE.GPL README.osx; do
+  cp -p $f $dir/$f.txt
+done
+
+for f in ChangeLog README; do
+  cp -p $f $dir/$f
+done
+
+binaries=src/sox
+
+# TODO: Distribute wget binary
+#[ -r "../wget-1.11.4/wget" ] && binaries+=" ../wget-1.11.4/wget"
+ 
+cp -p \
+  $binaries \
+  sox.txt \
+  soxformat.txt \
+  soxi.txt \
+  libsox.txt \
+  $dir
+
+(cd $dir; ln -s sox soxi; ln -s sox play; ln -s sox rec)
+
+#if test -r "../wget-1.11.4/wget"; then
+#  cp ../wget-1.11.4/wget.ini $dir
+#fi
+
+zip --symlinks -r $dir-macosx.zip $dir
+rm -rf $dir
