@@ -272,6 +272,7 @@
 		D82C7D5A16B28A54003C8B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AudioEffects/AudioEffects-Prefix.pch";
 				INFOPLIST_FILE = "AudioEffects/AudioEffects-Info.plist";
@@ -288,6 +289,7 @@
 		D82C7D5B16B28A54003C8B96 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AudioEffects/AudioEffects-Prefix.pch";
 				INFOPLIST_FILE = "AudioEffects/AudioEffects-Info.plist";
